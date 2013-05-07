@@ -1,0 +1,122 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:html';
+import 'package:safe_dom/validators.dart';
+
+/**
+ * A Dart DOM validator generated from Caja whitelists.
+ *
+ * This contains a whitelist of known HTML tagNames and attributes and will only
+ * accept known good values.
+ *
+ * See also:
+ *
+ * * https://code.google.com/p/google-caja/wiki/CajaWhitelists
+ */
+class CajaValidator implements NodeValidator {
+  static List<String> _allowedElements = [
+    {{#elements}}
+    '{{.}}',
+    {{/elements}}
+  ];
+
+  {{#attributes}}
+  static const _standardAttributes = const <String>[
+  {{#standardAttributes}}
+    '{{.}}',
+  {{/standardAttributes}}
+  ];
+
+  static const _uriAttributes = const <String>[
+  {{#uriAttributes}}
+    '{{.}}',
+  {{/uriAttributes}}
+  ];
+  {{/attributes}}
+
+  final UriPolicy uriPolicy;
+  final allowsCustomElements;
+
+  static final Map<String, Function> _attributeValidators = {};
+
+  /**
+   * All known URI attributes will be validated against the UriPolicy, if
+   * [uriPolicy] is null then a default UriPolicy will be used.
+   *
+   * Set [allowCustomElements] to true to allow custom elements to be used. If
+   * custom elements are allowed then all attributes on those custom elements
+   * will also be allowed.
+   */
+  CajaValidator({UriPolicy uriPolicy, bool allowCustomElements: false}):
+    this.uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy(),
+    this.allowsCustomElements = allowCustomElements {
+
+    if (_attributeValidators.isEmpty) {
+      for (var attr in _standardAttributes) {
+        _attributeValidators[attr] = _standardAttributeValidator;
+      }
+
+      for (var attr in _uriAttributes) {
+        _attributeValidators[attr] = _uriAttributeValidator;
+      }
+    }
+  }
+
+  bool allowsElement(String tagName) {
+    return _allowedElements.contains(tagName) ||
+        (allowsCustomElements && _isCustomElement(tagName));
+  }
+
+  bool allowsAttribute(String tagName, String attributeName, String value) {
+    var validator = _attributeValidators['$tagName::$attributeName'];
+    if (validator == null) {
+      validator = _attributeValidators['*::$attributeName'];
+    }
+    if (validator == null) {
+      if (_isCustomElement(tagName)) {
+        // Allow all custom element tags. If custom elements are not allowed
+        // then the entire element will be removed.
+        return allowsCustomAttribute(tagName, attributeName, value);
+      } else if (allowsCustomElements && attributeName == 'is') {
+        // This is used to confer standard tags into custom elements.
+        return true;
+      }
+      return false;
+    }
+    return validator(tagName, attributeName, value, this);
+  }
+
+  static bool _standardAttributeValidator(String tagName, String attributeName,
+      String value, CajaValidator context) {
+    return true;
+  }
+
+  static bool _uriAttributeValidator(String tagName, String attributeName,
+      String value, CajaValidator context) {
+    return context.uriPolicy.allowsAttributeUri(tagName, attributeName, value);
+  }
+
+  bool _isCustomElement(String tagName) {
+    return tagName.contains('-');
+  }
+
+  /**
+   * Checks to see if the specified attributes are allowed on the custom
+   * element.
+   *
+   * This will only be called if custom elements are allowed, by default this
+   * filters known bad attributes but allows all others.
+   */
+  bool allowsCustomAttribute(String tagName, String attributeName,
+      String value) {
+    if (attributeName.startsWith('on')) {
+      return false;
+    }
+    if (attributeName == 'style') {
+      return false;
+    }
+    return true;
+  }
+}

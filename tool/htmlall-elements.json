@@ -1,0 +1,6 @@
+{
+  "description": "See http://code.google.com/p/google-caja/wiki/CajaWhitelists",
+  "inherits": [
+    "https://google-caja.googlecode.com/svn/trunk/src/com/google/caja/lang/html/htmlall-elements.json"
+  ]
+}

@@ -1,0 +1,12 @@
+name: safe_dom
+author: "Dart Team <misc@dartlang.org>"
+homepage: https://github.com/dart-lang/
+description: Safe DOM Creation
+version: 0.0.1
+dev_dependencies:
+  unittest: ">=0.4.5"
+  mustache: any
+  args: ">=0.4.5"
+  browser: any
+environment:
+  sdk: ">=0.4.6"
