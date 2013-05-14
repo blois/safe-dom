@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library safe_dom.parser;
+
 import 'dart:html';
 import 'validators.dart';
 
@@ -51,6 +53,7 @@ DocumentFragment _parseHtml(Element context, String html,
 
   // TODO (blois): Fix once integrate w/ Dart build with support for this.
   //if (Range.supportsCreateContextualFragment) {
+  try {
     var range = doc.$dom_createRange();
     range.selectNode(contextElement);
     var fragment = range.createContextualFragment(html);
@@ -58,12 +61,14 @@ DocumentFragment _parseHtml(Element context, String html,
     treeSanitizer.sanitizeTree(fragment);
 
     return fragment;
-  //} else {
-  //  contextElement.innerHtml = html;
-  //  var fragment = new DocumentFragment();;
-  //  while (contextElement.$dom_firstChild != null) {
-  //    fragment.append(contextElement.$dom_firstChild);
-  //  }
-  //  return fragment;
-  //}
+  } catch(e) {
+    contextElement.innerHtml = html;
+    treeSanitizer.sanitizeTree(contextElement);
+
+    var fragment = new DocumentFragment();
+    while (contextElement.$dom_firstChild != null) {
+      fragment.append(contextElement.$dom_firstChild);
+    }
+    return fragment;
+  }
 }

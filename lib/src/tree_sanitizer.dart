@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library safe_dom.src.tree_sanitizer;
+
 import 'dart:html';
 import 'package:safe_dom/validators.dart';
 

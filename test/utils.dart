@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library safe_dom.test.utils;
+
 import 'dart:html';
 import 'package:safe_dom/validators.dart';
 import 'package:unittest/unittest.dart';
 
 
+/**
+ * Validate that two DOM trees are equivalent.
+ */
 void validate(Node a, Node b, [String path = '']) {
   path = '${path}${a.runtimeType}';
   expect(a.nodeType, b.nodeType, reason: '$path nodeTypes differ');
@@ -30,7 +35,9 @@ void validate(Node a, Node b, [String path = '']) {
   }
 }
 
-// Combines adjacent text nodes
+/**
+ * Combines adjacent text nodes.
+ */
 void normalizeTextNodes(Node node) {
   var currentText = null;
 
@@ -52,11 +59,17 @@ void normalizeTextNodes(Node node) {
   }
 }
 
+/**
+ * Validator which accepts everything.
+ */
 class NullValidator implements NodeValidator {
   bool allowsElement(String tagName) => true;
   bool allowsAttribute(String elementTagName, String name, String value) => true;
 }
 
+/**
+ * Sanitizer which does nothing.
+ */
 class NullTreeSanitizer implements NodeTreeSanitizer {
   void sanitizeTree(Node node) {}
 }

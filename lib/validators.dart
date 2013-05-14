@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library safe_dom.validators;
+
 import 'dart:html';
 import 'src/tree_sanitizer.dart';
 import 'src/caja_validator.dart';
@@ -56,7 +58,7 @@ abstract class NodeTreeSanitizer {
    * Constructs a default tree sanitizer which will remove all elements and
    * attributes which are not allowed by the provided validator.
    */
-  factory NodeTreeSanitizer(Validator validator) =>
+  factory NodeTreeSanitizer(NodeValidator validator) =>
       new ValidatingTreeSanitizer(validator);
 
   /**
