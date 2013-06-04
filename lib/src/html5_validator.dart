@@ -4,7 +4,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library safe_dom.src.caja_validator;
+library safe_dom.src.html5_validator;
 
 import 'dart:html';
 import 'package:safe_dom/validators.dart';
@@ -19,8 +19,8 @@ import 'package:safe_dom/validators.dart';
  *
  * * https://code.google.com/p/google-caja/wiki/CajaWhitelists
  */
-class CajaValidator implements NodeValidator {
-  static List<String> _allowedElements = [
+class Html5NodeValidator implements NodeValidator {
+  static final Set<String> _allowedElements = new Set.from([
     'A',
     'ABBR',
     'ACRONYM',
@@ -121,7 +121,7 @@ class CajaValidator implements NodeValidator {
     'VAR',
     'VIDEO',
     'WBR',
-  ];
+  ]);
 
   static const _standardAttributes = const <String>[
     '*::class',
@@ -403,21 +403,15 @@ class CajaValidator implements NodeValidator {
   ];
 
   final UriPolicy uriPolicy;
-  final allowsCustomElements;
 
   static final Map<String, Function> _attributeValidators = {};
 
   /**
    * All known URI attributes will be validated against the UriPolicy, if
    * [uriPolicy] is null then a default UriPolicy will be used.
-   *
-   * Set [allowCustomElements] to true to allow custom elements to be used. If
-   * custom elements are allowed then all attributes on those custom elements
-   * will also be allowed.
    */
-  CajaValidator({UriPolicy uriPolicy, bool allowCustomElements: false}):
-    this.uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy(),
-    this.allowsCustomElements = allowCustomElements {
+  Html5NodeValidator({UriPolicy uriPolicy}):
+    this.uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
 
     if (_attributeValidators.isEmpty) {
       for (var attr in _standardAttributes) {
@@ -430,59 +424,29 @@ class CajaValidator implements NodeValidator {
     }
   }
 
-  bool allowsElement(String tagName) {
-    return _allowedElements.contains(tagName) ||
-        (allowsCustomElements && _isCustomElement(tagName));
+  bool allowsElement(Element element) {
+    return _allowedElements.contains(element.tagName);
   }
 
-  bool allowsAttribute(String tagName, String attributeName, String value) {
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    var tagName = element.tagName;
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
     }
     if (validator == null) {
-      if (_isCustomElement(tagName)) {
-        // Allow all custom element tags. If custom elements are not allowed
-        // then the entire element will be removed.
-        return allowsCustomAttribute(tagName, attributeName, value);
-      } else if (allowsCustomElements && attributeName == 'is') {
-        // This is used to confer standard tags into custom elements.
-        return true;
-      }
       return false;
     }
-    return validator(tagName, attributeName, value, this);
+    return validator(element, attributeName, value, this);
   }
 
-  static bool _standardAttributeValidator(String tagName, String attributeName,
-      String value, CajaValidator context) {
+  static bool _standardAttributeValidator(Element element, String attributeName,
+      String value, Html5NodeValidator context) {
     return true;
   }
 
-  static bool _uriAttributeValidator(String tagName, String attributeName,
-      String value, CajaValidator context) {
-    return context.uriPolicy.allowsAttributeUri(tagName, attributeName, value);
-  }
-
-  bool _isCustomElement(String tagName) {
-    return tagName.contains('-');
-  }
-
-  /**
-   * Checks to see if the specified attributes are allowed on the custom
-   * element.
-   *
-   * This will only be called if custom elements are allowed, by default this
-   * filters known bad attributes but allows all others.
-   */
-  bool allowsCustomAttribute(String tagName, String attributeName,
-      String value) {
-    if (attributeName.startsWith('on')) {
-      return false;
-    }
-    if (attributeName == 'style') {
-      return false;
-    }
-    return true;
+  static bool _uriAttributeValidator(Element element, String attributeName,
+      String value, Html5NodeValidator context) {
+    return context.uriPolicy.allowsUri(value);
   }
 }

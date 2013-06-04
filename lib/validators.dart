@@ -6,7 +6,7 @@ library safe_dom.validators;
 
 import 'dart:html';
 import 'src/tree_sanitizer.dart';
-import 'src/caja_validator.dart';
+import 'src/html5_validator.dart';
 
 
 /**
@@ -16,22 +16,18 @@ import 'src/caja_validator.dart';
 abstract class NodeValidator {
 
   /**
-   * Construct a default NodeValidator which only accepts whitelisted elements
-   * and attributes.
+   * Construct a default NodeValidator which only accepts whitelisted HTML5
+   * elements and attributes.
    *
    * If a uriPolicy is not specified then the default uriPolicy will be used.
    */
   factory NodeValidator({UriPolicy uriPolicy}) =>
-      new CajaValidator(uriPolicy: uriPolicy);
+      new Html5NodeValidator(uriPolicy: uriPolicy);
 
   /**
    * Returns true if the tagName is an accepted type.
-   *
-   * The tagName parameter will always be in uppercase.
-   *
-   * Namespaced tags will come through as 'NS:TAGNAME'.
    */
-  bool allowsElement(String tagName);
+  bool allowsElement(Element element);
 
   /**
    * Returns true if the attribute is allowed.
@@ -40,7 +36,7 @@ abstract class NodeValidator {
    *
    * See [allowsElement] for format of tagName.
    */
-  bool allowsAttribute(String tagName, String attributeName, String value);
+  bool allowsAttribute(Element element, String attributeName, String value);
 }
 
 /**
@@ -92,11 +88,8 @@ abstract class UriPolicy {
    * Checks if the uri is allowed on the specified attribute.
    *
    * The uri provided may or may not be a relative path.
-   *
-   * See also [NodeValidator.allowsAttribute] for format of tagName and
-   * attributeName.
    */
-  bool allowsAttributeUri(String tagName, String attributeName, String uri);
+  bool allowsUri(String uri);
 }
 
 /**
@@ -106,7 +99,7 @@ abstract class UriPolicy {
 class SameOriginUriPolicy implements UriPolicy {
   final AnchorElement _hiddenAnchor = new AnchorElement();
 
-  bool allowsAttributeUri(String tagName, String attributeName, String uri) {
+  bool allowsUri(String uri) {
     _hiddenAnchor.href = uri;
     return _hiddenAnchor.href.startsWith(window.location.origin);
   }
@@ -121,7 +114,7 @@ class SameOriginUriPolicy implements UriPolicy {
 class SameProtocolUriPolicy implements UriPolicy {
   final AnchorElement _hiddenAnchor = new AnchorElement();
 
-  bool allowsAttributeUri(String tagName, String attributeName, String uri) {
+  bool allowsUri(String uri) {
     _hiddenAnchor.href = uri;
     return _hiddenAnchor.href.startsWith(window.location.protocol);
   }
@@ -140,7 +133,7 @@ class SameProtocolUriPolicy implements UriPolicy {
 class CommonProtocolUriPolicy implements UriPolicy {
   final AnchorElement _hiddenAnchor = new AnchorElement();
 
-  bool allowsAttributeUri(String tagName, String attributeName, String uri) {
+  bool allowsUri(String uri) {
     _hiddenAnchor.href = uri;
     var href = _hiddenAnchor.href;
     return (href.startsWith('http://') ||

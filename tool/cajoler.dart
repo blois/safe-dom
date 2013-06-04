@@ -90,7 +90,7 @@ Future process(Uri elementsUri, Uri attributesUri, String templatePath,
           type != null ? findValidator(type) : 'standardAttributes';
 
       var parts = attr.split('::');
-      attr = '${parts[0]}::${parts[1].toLowerCase()}';
+      attr = '${parts[0].toUpperCase()}::${parts[1].toLowerCase()}';
 
       attributeSets[attributeSet].add(attr);
     }
@@ -213,7 +213,7 @@ class Whitelist {
 }
 
 Uri toUri(String path) {
-  var currentUri = new Uri.fromString('file://${Directory.current.path}/');
+  var currentUri = Uri.parse('file://${Directory.current.path}/');
   return currentUri.resolve(path);
 }
 

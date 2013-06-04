@@ -51,9 +51,7 @@ DocumentFragment _parseHtml(Element context, String html,
     contextElement = doc.$dom_createElement(context.tagName);
   }
 
-  // TODO (blois): Fix once integrate w/ Dart build with support for this.
-  //if (Range.supportsCreateContextualFragment) {
-  try {
+  if (Range.supportsCreateContextualFragment) {
     var range = doc.$dom_createRange();
     range.selectNode(contextElement);
     var fragment = range.createContextualFragment(html);
@@ -61,7 +59,7 @@ DocumentFragment _parseHtml(Element context, String html,
     treeSanitizer.sanitizeTree(fragment);
 
     return fragment;
-  } catch(e) {
+  } else {
     contextElement.innerHtml = html;
     treeSanitizer.sanitizeTree(contextElement);
 

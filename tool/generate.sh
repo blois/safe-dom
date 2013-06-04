@@ -4,4 +4,4 @@
 # whitelists.
 
 dart cajoler.dart \
-    --out=../lib/src/caja_validator.dart
+    --out=../lib/src/html5_validator.dart

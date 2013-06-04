@@ -35,16 +35,26 @@ class ValidatingTreeSanitizer implements NodeTreeSanitizer {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         Element element = node;
-        if (!validator.allowsElement(element.tagName)) {
+        var attrs = element.attributes;
+        if (!validator.allowsElement(element)) {
           element.remove();
+          break;
         }
+
+        var isAttr = attrs['is'];
+        if (isAttr != null) {
+          if (!validator.allowsAttribute(element, 'is', isAttr)) {
+            element.remove();
+            break;
+          }
+        }
+
         // TODO(blois): Need to be able to get all attributes, irrespective of
         // XMLNS.
-        var attrs = element.attributes;
         var keys = attrs.keys.toList();
         for (var i = attrs.length - 1; i >= 0; --i) {
           var name = keys[i];
-          if (!validator.allowsAttribute(element.tagName, name, attrs[name])) {
+          if (!validator.allowsAttribute(element, name, attrs[name])) {
             attrs.remove(name);
           }
         }

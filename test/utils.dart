@@ -15,18 +15,19 @@ import 'package:unittest/unittest.dart';
 void validate(Node a, Node b, [String path = '']) {
   path = '${path}${a.runtimeType}';
   expect(a.nodeType, b.nodeType, reason: '$path nodeTypes differ');
-  expect(a.localName, b.localName, reason: '$path localNames differ');
-  expect(a.nodes.length, b.nodes.length, reason: '$path nodes.lengths differ');
   expect(a.nodeValue, b.nodeValue, reason: '$path nodeValues differ');
   expect(a.text, b.text, reason: '$path texts differ');
+  expect(a.nodes.length, b.nodes.length, reason: '$path nodes.lengths differ');
 
   if (a is Element) {
     Element bE = b;
-    expect(a.tagName, bE.tagName, reason: '$path tagNames differ');
-    expect(a.attributes.length, bE.attributes.length,
+    Element aE = a;
+
+    expect(aE.tagName, bE.tagName, reason: '$path tagNames differ');
+    expect(aE.attributes.length, bE.attributes.length,
         reason: '$path attributes.lengths differ');
-    for (var key in a.attributes.keys) {
-      expect(a.attributes[key], bE.attributes[key],
+    for (var key in aE.attributes.keys) {
+      expect(aE.attributes[key], bE.attributes[key],
           reason: '$path attribute [$key] values differ');
     }
   }
@@ -63,8 +64,8 @@ void normalizeTextNodes(Node node) {
  * Validator which accepts everything.
  */
 class NullValidator implements NodeValidator {
-  bool allowsElement(String tagName) => true;
-  bool allowsAttribute(String elementTagName, String name, String value) => true;
+  bool allowsElement(Element element) => true;
+  bool allowsAttribute(Element element, String name, String value) => true;
 }
 
 /**
